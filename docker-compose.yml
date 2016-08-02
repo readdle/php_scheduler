@@ -1,0 +1,11 @@
+version: '2'
+services:
+    sheduler:
+        restart: unless-stopped
+        logging:
+            driver: json-file
+            options:
+                max-size: 10m
+        image: fluix/baselemp
+        volumes:
+            - .:/home/appuser/fluix

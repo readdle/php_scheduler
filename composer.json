@@ -1,0 +1,10 @@
+{
+    "name": "readdle/scheduler",
+    "description": "Scheduler is a cron-like php environment for docker containers",
+    "type": "library",
+    "license": "MIT",
+    "autoload" : {
+        "psr-4" : { "Readdle\\Scheduler\\" : "src/Readdle" }
+    },
+    "require": {}
+}
