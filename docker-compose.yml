@@ -1,6 +1,6 @@
 version: '2'
 services:
-    sheduler:
+    scheduler:
         restart: unless-stopped
         logging:
             driver: json-file

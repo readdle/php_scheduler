@@ -3,6 +3,12 @@ namespace Readdle\Scheduler;
 
 class Scheduler
 {
+    const ONE_DAY_INTERVAL = 86400;
+    const ONE_HOUR_INTERVAL = 3600;
+    const TWO_HOUR_INTERVAL = 7200;
+    const FOUR_HOUR_INTERVAL = 14400;
+    const FIVE_MINUTE_INTERVAL = 300;
+
     protected $dataStorage;
     protected $scripts = [];
 
@@ -30,6 +36,7 @@ class Scheduler
     protected function calcNextScriptRunTime(string $scriptName): int
     {
         $lasScriptRunTime = (int)$this->dataStorage->get($scriptName);
+        $lasScriptRunTime = $this->getCronLikeTime($lasScriptRunTime, $this->scripts[$scriptName]['interval']);
 
         $nextScriptRunTime = $this->scripts[$scriptName]['interval'] + $lasScriptRunTime;
 
@@ -38,6 +45,24 @@ class Scheduler
         }
 
         return $nextScriptRunTime;
+    }
+
+    /**
+     * Run scripts like cron: 5 minute -> every 3:00, 3:05, 3:10
+     * @param int $time
+     * @param int $interval
+     * @return int
+     */
+    protected function getCronLikeTime(int $time, int $interval): int
+    {
+        $adjustSeconds = 0;
+
+        $mod = $time % $interval;
+        if ($mod > 0) {
+            $adjustSeconds = $interval - $mod;
+        }
+
+        return $time + $adjustSeconds;
     }
 
     public function loop()
