@@ -1,5 +1,5 @@
 <?php
-namespace Readdle\Scheduler\Common;
+namespace Readdle\Scheduler;
 
 class PersistentStorage
 {

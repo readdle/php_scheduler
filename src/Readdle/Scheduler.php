@@ -1,8 +1,6 @@
 <?php
 namespace Readdle\Scheduler;
 
-use Readdle\Scheduler\Common\PersistentStorage;
-
 class Scheduler
 {
     protected $dataStorage;
