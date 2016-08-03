@@ -25,7 +25,11 @@ class Scheduler
             throw new \Exception("Interval cannot be less that 1 sec.");
         }
 
-        $scriptName = (new \ReflectionClass($script))->getShortName();
+        if (!method_exists($script, "getName")) {
+            $scriptName = (new \ReflectionClass($script))->getShortName();
+        } else {
+            $scriptName = $script->getName();
+        }
 
         $this->scripts[$scriptName] = [
             'callable' => $script,
