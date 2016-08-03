@@ -19,7 +19,7 @@ class Scheduler
         $this->dataStorage = $dataStorage;
     }
 
-    public function register(int $interval, callable $script)
+    public function register($interval, $script)
     {
         if ($interval < 1) {
             throw new \Exception("Interval cannot be less that 1 sec.");
@@ -33,7 +33,7 @@ class Scheduler
         ];
     }
 
-    protected function calcNextScriptRunTime(string $scriptName): int
+    protected function calcNextScriptRunTime($scriptName)
     {
         $lasScriptRunTime = (int)$this->dataStorage->get($scriptName);
         $lasScriptRunTime = $this->getCronLikeTime($lasScriptRunTime, $this->scripts[$scriptName]['interval']);
@@ -53,7 +53,7 @@ class Scheduler
      * @param int $interval
      * @return int
      */
-    protected function getCronLikeTime(int $time, int $interval): int
+    protected function getCronLikeTime($time, $interval)
     {
         $adjustSeconds = 0;
 

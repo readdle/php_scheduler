@@ -8,7 +8,7 @@ class PersistentStorage
     protected $functions;
     protected $appName;
 
-    public function __construct(string $appName, callable $setFunc, callable $getFunc)
+    public function __construct($appName, $setFunc, $getFunc)
     {
         if (!is_callable($setFunc)) {
             throw new \Exception("Set function is not valid callback");
@@ -23,17 +23,17 @@ class PersistentStorage
         $this->appName = $appName;
     }
 
-    protected function getNameSpacedKey(string $key)
+    protected function getNameSpacedKey($key)
     {
         return self::CACHE_PREFIX . ":{$this->appName}:{$key}";
     }
 
-    public function save(string $key, string $value)
+    public function save($key, $value)
     {
         $this->functions['set']($this->getNameSpacedKey($key), $value);
     }
 
-    public function get(string $key)
+    public function get($key)
     {
         return $this->functions['get']($this->getNameSpacedKey($key));
     }
