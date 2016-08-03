@@ -10,14 +10,6 @@ class PersistentStorage
 
     public function __construct(string $appName, callable $setFunc, callable $getFunc)
     {
-        if (!is_callable($setFunc)) {
-            throw new \Exception("Set function is not valid callback");
-        }
-
-        if (!is_callable($getFunc)) {
-            throw new \Exception("Get function is not valid callback");
-        }
-
         $this->functions['set'] = $setFunc;
         $this->functions['get'] = $getFunc;
         $this->appName = $appName;
