@@ -1,10 +1,3 @@
-**General scheduler project**
-
-- Run tests inside docker container `docker-compose up`
-
-**Example usage**
-
-```php
 <?php
 
 include "./vendor/autoload.php";
@@ -45,11 +38,7 @@ $storage = new Storage();
 
 // Create scheduler object
 $scheduler = new \Readdle\Scheduler\Scheduler(
-    new \Readdle\Scheduler\PersistentStorage(
-        'test',
-        [$storage, 'set'],
-        [$storage, 'get']
-    )
+    new \Readdle\Scheduler\PersistentStorage('test', [$storage, 'set'], [$storage, 'get'])
 );
 
 // Register your scripts
@@ -61,4 +50,3 @@ $scheduler->register(27, new SomeScript('27 second'));
 
 // Start scheduler loop
 $scheduler->loop();
-```

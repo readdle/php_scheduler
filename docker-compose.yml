@@ -1,11 +1,20 @@
 version: '2'
 services:
     scheduler:
-        restart: unless-stopped
         logging:
             driver: json-file
             options:
                 max-size: 10m
-        image: fluix/baselemp
+
+        image: php:7-alpine
         volumes:
-            - .:/home/appuser/fluix
+            - .:/tests
+            - ./runtime:/app
+
+        environment:
+            TEST_DIR: /tests
+
+        entrypoint: /app/entrypoint.sh
+        command: ""
+
+        working_dir: /tests
