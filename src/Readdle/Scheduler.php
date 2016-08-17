@@ -83,8 +83,6 @@ class Scheduler
 
             if ($this->nextRun > time()) {
                 time_sleep_until($this->nextRun);
-            } else {
-                time_sleep_until(time() + 1);
             }
             $this->nextRun = null;
         }
