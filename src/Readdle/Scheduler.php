@@ -69,6 +69,7 @@ class Scheduler
                 $nextRun = (int)$this->dataStorage->get($scriptName);
 
                 if ($nextRun > time()) {
+                    $this->updateNextRun($nextRun);
                     continue;
                 }
 
@@ -81,7 +82,7 @@ class Scheduler
                 $this->dataStorage->save($scriptName, $nextRun);
             }
 
-            if ($this->nextRun > time()) {
+            if ($this->nextRun > time() + 1) { //to avoid proble with time_sleep_until 
                 time_sleep_until($this->nextRun);
             }
             $this->nextRun = null;
