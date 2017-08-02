@@ -64,7 +64,14 @@ class Scheduler
     {
         count($this->scripts) or die("Nothing to do" . PHP_EOL);
 
+        $proccesess = [];
         while (true) {
+            foreach ($proccesess as $key => $pid) {
+                if (pcntl_waitpid($pid, $status) === -1) {
+                    continue;
+                }
+                unset($proccesess[$key]);
+            }
             foreach ($this->scripts as $scriptName => $scriptDetails) {
                 $nextRun = (int)$this->dataStorage->get($scriptName);
 
@@ -73,8 +80,19 @@ class Scheduler
                     continue;
                 }
 
-                # running script
-                call_user_func($scriptDetails['callable']);
+                $pid = pcntl_fork();
+                if ($pid == -1) {
+                    throw new \InvalidArgumentException("Can't fork process");
+                } elseif ($pid == 0) {
+                    try {
+                        # running script
+                        call_user_func($scriptDetails['callable']);
+                        exit(0);
+                    } catch (\Throwable $exception) {
+                        exit (1);
+                    }
+                }
+                $proccesess[] = $pid;
 
                 # setup time for next running
                 $nextRun = $this->getCronLikeTimeSinceNow($scriptDetails['interval']);
