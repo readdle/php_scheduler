@@ -154,4 +154,14 @@ class TaskHandlerTest extends TestCase
     {
         return $this->getMockBuilder(ClientInterface::class)->disableOriginalConstructor()->getMock();
     }
+    
+    protected function getShmopKey(): int
+    {
+        return 0xff3;
+    }
+    
+    protected function getShmopSize(): int
+    {
+        return 2048;
+    }
 }

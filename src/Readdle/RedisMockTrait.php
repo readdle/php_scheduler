@@ -95,7 +95,7 @@ trait RedisMockTrait
     
     private function getSharedData(): array
     {
-        $shm = shmop_open(0xff3, "c", 0644, 2048);
+        $shm = shmop_open($this->getShmopKey(), "c", 0644, $this->getShmopSize());
         $shm_size = shmop_size($shm);
         $data = shmop_read($shm, 0, $shm_size);
         shmop_close($shm);
@@ -113,7 +113,7 @@ trait RedisMockTrait
     private function saveSharedData(array $data): bool
     {
         $this->clearRedis();
-        $shm = shmop_open(0xff3, "c", 0644, 2048);
+        $shm = shmop_open($this->getShmopKey(), "c", 0644, $this->getShmopSize());
         $dataToSave = json_encode($data);
         $savedLength = shmop_write($shm, $dataToSave, 0);
         shmop_close($shm);
@@ -123,10 +123,14 @@ trait RedisMockTrait
     
     protected function clearRedis()
     {
-        $shm = shmop_open(0xff3, "c", 0644, 2048);
+        $shm = shmop_open($this->getShmopKey(), "c", 0644, $this->getShmopSize());
         shmop_delete($shm);
         shmop_close($shm);
     }
     
     abstract protected function getRedisMock(): \PHPUnit_Framework_MockObject_MockObject;
+    
+    abstract protected function getShmopKey(): int;
+    
+    abstract protected function getShmopSize(): int;
 }
