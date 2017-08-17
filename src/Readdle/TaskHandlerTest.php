@@ -34,8 +34,8 @@ class TaskHandlerTest extends TestCase
             ],
             [
                 [
-                    new Command('printf "Fucked Exception happened\n see logs \n"', random_int(2, 8)),
-                    new Command('printf "Shit happens!\n Fucked Exception happened \n"', random_int(2, 8)),
+                    new Command('printf "Exception has been thrown\n see logs \n"', random_int(2, 8)),
+                    new Command('printf "Shit happens!\n Exception has been thrown \n"', random_int(2, 8)),
                 ],
             ],
             [
