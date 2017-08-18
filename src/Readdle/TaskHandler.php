@@ -1,5 +1,7 @@
 <?php
 
+declare(ticks = 1);
+
 namespace Readdle\Scheduler;
 
 use Predis\ClientInterface;
@@ -33,17 +35,22 @@ class TaskHandler implements TaskHandlerInterface
         if (count($this->tasks) < 1) {
             return false;
         }
+        pcntl_signal(SIGINT, [$this, 'terminate']);
+        pcntl_signal(SIGTERM, [$this, 'terminate']);
+        pcntl_signal(SIGHUP, [$this, 'terminate']);
         
-        $timeCacheKey = sprintf($this->cacheKey, 'times');
-        $pidsCacheKey = sprintf($this->cacheKey, 'pids');
-        $resultCacheKey = sprintf($this->cacheKey, 'result');
+        $timeCacheKey = $this->createCacheKey('times');
+        $pidsCacheKey = $this->createCacheKey('pids');
+        $resultCacheKey = $this->createCacheKey('result');
         
         while (true) {
             $workerSleepTime = 0;
             foreach ($this->tasks as $commandDetails) {
                 $cacheTaskField = $this->createCacheTaskKey($commandDetails);
-                if (!$this->canRunTaskAgain($pidsCacheKey, $resultCacheKey, $cacheTaskField)) {
-                    continue;
+                if (!$this->canRunTaskAgain($pidsCacheKey, $cacheTaskField)) {
+                    if (!$this->waitForResult($pidsCacheKey, $resultCacheKey, $cacheTaskField)) {
+                        continue;
+                    }
                 }
                 if ($this->redis->hexists($timeCacheKey, $cacheTaskField)) {
                     $taskNextRunTime = (int)$this->redis->hget($timeCacheKey, $cacheTaskField);
@@ -84,6 +91,33 @@ class TaskHandler implements TaskHandlerInterface
         }
     }
     
+    public function terminate(int $signal)
+    {
+        printf("\nClearing redis cache, wait while will be done\n");
+        $pidsCacheKey = $this->createCacheKey('pids');
+        $resultCacheKey = $this->createCacheKey('result');
+        $fields = $this->redis->hkeys($pidsCacheKey);
+        while (count($fields) > 0) {
+            foreach ($fields as $key => $field) {
+                if ($this->waitForResult($pidsCacheKey, $resultCacheKey, $field)) {
+                    printf("\n'%s' task finished\n", $field);
+                    unset($fields[$key]);
+                }
+            }
+        }
+        printf("\nTerminating!\n");
+        $this->logger->notice('scheduler', [
+            'message' => 'Process was terminated',
+            'signal' => $signal,
+        ]);
+        die;
+    }
+    
+    private function createCacheKey(string $fieldType): string
+    {
+        return sprintf($this->cacheKey, $fieldType);
+    }
+    
     private function getSleepTime(int $workerSleepTime, int $commandNextRunTime): int
     {
         if ($workerSleepTime === 0) {
@@ -96,15 +130,21 @@ class TaskHandler implements TaskHandlerInterface
         return $workerSleepTime;
     }
     
-    private function canRunTaskAgain(string $pidsCacheKey, string $resultCacheKey, string $cacheTaskField): bool
+    private function canRunTaskAgain(string $pidsCacheKey, string $cacheTaskField): bool
     {
         if (!$this->redis->hexists($pidsCacheKey, $cacheTaskField)) {
             return true;
         }
+        
+        return false;
+    }
+    
+    private function waitForResult(string $pidsCacheKey, string $resultCacheKey, string $cacheTaskField)
+    {
         $pid = (int)$this->redis->hget($pidsCacheKey, $cacheTaskField);
-        
+    
         $forkStatus = pcntl_waitpid($pid, $status);
-        
+    
         if ($forkStatus > 0) {
             $result = $this->redis->hget($resultCacheKey, $cacheTaskField);
             $this->redis->hdel($pidsCacheKey, [$cacheTaskField]);
@@ -118,10 +158,10 @@ class TaskHandler implements TaskHandlerInterface
             } else {
                 $this->logger->info('scheduler', $context);
             }
-            
+        
             return true;
         }
-        
+    
         return false;
     }
     

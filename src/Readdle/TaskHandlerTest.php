@@ -1,18 +1,26 @@
 <?php
 
+declare(ticks = 1);
+
 namespace Readdle\Scheduler;
 
 use PHPUnit\Framework\TestCase;
 use Predis\ClientInterface;
 use Psr\Log\LoggerInterface;
 
-declare(ticks = 1);
-
 class TaskHandlerTest extends TestCase
 {
     use RedisMockTrait;
     
     protected function setUp()
+    {
+        $this->clearRedis();
+        pcntl_signal(SIGINT, [$this, 'tearDown']);
+        pcntl_signal(SIGTERM, [$this, 'tearDown']);
+        pcntl_signal(SIGHUP, [$this, 'tearDown']);
+    }
+    
+    public function tearDown()
     {
         $this->clearRedis();
     }
@@ -97,6 +105,11 @@ class TaskHandlerTest extends TestCase
         };
         $logger->method('info')->willReturnCallback($logCallback);
         $logger->method('error')->willReturnCallback($logCallback);
+        $logger->method('notice')->willReturnCallback(function (string $message, array $context) {
+            TestCase::assertEquals('scheduler', $message);
+            TestCase::assertArrayHasKey('message', $context);
+            TestCase::assertArrayHasKey('signal', $context);
+        });
         
         /**
          * @var LoggerInterface $logger
@@ -162,6 +175,6 @@ class TaskHandlerTest extends TestCase
     
     protected function getShmopSize(): int
     {
-        return 2048;
+        return 1024;
     }
 }

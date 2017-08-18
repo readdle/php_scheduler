@@ -26,6 +26,9 @@ trait RedisMockTrait
             case 'hdel':
                 $result = $this->hdel($arguments[0], $arguments[1]);
                 break;
+            case 'hkeys':
+                $result = $this->hkeys($arguments[0]);
+                break;
         }
         
         $this->saveSharedData($this->redisData);
@@ -91,6 +94,15 @@ trait RedisMockTrait
         }
         
         return 1;
+    }
+    
+    private function hkeys(string $key): array
+    {
+        if (!array_key_exists($key, $this->redisData)) {
+            return [];
+        }
+        
+        return array_keys($this->redisData[$key]);
     }
     
     private function getSharedData(): array
